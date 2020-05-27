@@ -1,4 +1,3 @@
-import * as api from '../siteinfo/siteinfo'
 const utils = {
     /* 一键复制 */
     setClipboardData(str) {
