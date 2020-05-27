@@ -1,1 +1,1 @@
-# JavaScript_Ways_packge-
+# 个人开发中使用JS封装方法库
