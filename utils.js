@@ -110,7 +110,7 @@ const utils = {
         })
         res(promise)
     },
-    /*  富文本解析 */
+    /* 富文本解析 */
     formatRichText: function (html) {
         let newContent = html.replace(/<img[^>]*>/gi, function (match, capture) {
             match = match.replace(/style=""/gi, '').replace(/style=''+'/gi, '');
@@ -127,6 +127,22 @@ const utils = {
         newContent = newContent.replace(/\<img/gi, `<img style="max-width:100%!important;height:auto!important;display:block!important;margin-top:0!important;margin-bottom:0!important;"`);
         return newContent;
     },
+    /* 随机颜色范围 */
+    randomNumber(m, n) {
+        return Math.floor(Math.random() * (n - m + 1) + m);
+    },
+    /* 生成随机颜色 */
+    randomColor() {
+        return (
+            "rgb(" +
+            this.randomNumber(0, 255) +
+            "," +
+            this.randomNumber(0, 255) +
+            "," +
+            this.randomNumber(0, 255) +
+            ")"
+        );
+    }
 }
 
 export default utils
