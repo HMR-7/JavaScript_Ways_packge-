@@ -1,4 +1,4 @@
-# 基于uni-app开发的JS封装方法库
+# 基于uni-app开发的个人JS封装方法库
 <p>1、一键复制：基于uni.setClipboardData</p>
 <p>2、动态设置页面标题：基于uni.setNavigationBarTitle</p>
 <p>3、ajax请求-promis：基于uni.request</p>
