@@ -19,7 +19,7 @@ const utils = {
         });
     },
     /* 触底加载的封装 */
-    pullRefresh(list, page, res) {
+    pullRefresh: (list, page, res) => {
         list = [...list, ...res]
         if (list.length == 0 && page == 1) {
             console.log("没有数据");
@@ -67,7 +67,17 @@ const utils = {
         }
         return obj;
     },
-   
+    shuffle: (arr) => {
+        let len = arr.length;
+        for (let i = 0; i < len; i++) {
+            // -i 从后面
+            // 从前面随机取一个数的下标
+            // Math.floor(x) 返回小于等于x的最大整数 向下取整
+            let idx = Math.floor(Math.random() * (len - i));
+            [arr[len - 1 - i], arr[idx]] = [arr[idx], arr[len - 1 - i]];
+        }
+        return arr;
+    },
     /* ajax请求-promise+async、await */
     ajax: async function (url, method, data, res) {
         const promise = new Promise((resolve, reject) => {
