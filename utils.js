@@ -1,4 +1,15 @@
 const utils = {
+    //判断是否为全面屏手机，实现兼容性匹配
+    getPhoneModel() {
+        var bottom_phone_line = null;
+        let model = uni.getStorageSync('phoneData').model
+        if (model.indexOf('iPhone X') != -1 || model.indexOf('iPhone 11') != -1) {
+            bottom_phone_line = true;
+        } else {
+            bottom_phone_line = false
+        }
+        return bottom_phone_line
+    },
     /* 一键复制 */
     setClipboardData(str) {
         uni.setClipboardData({
@@ -19,7 +30,8 @@ const utils = {
         });
     },
     /* 触底加载的封装 */
-    pullRefresh: (list, page, res) => {
+    reachBottom(list, page, res) {
+        console.log(this, 'this');
         list = [...list, ...res]
         if (list.length == 0 && page == 1) {
             console.log("没有数据");
@@ -32,7 +44,9 @@ const utils = {
                 duration: 2000,
             });
             page--
-        } else {}
+        } else {
+            // page++
+        }
         return {
             list: list,
             page: page
@@ -169,7 +183,82 @@ const utils = {
             this.randomNumber(0, 255) +
             ")"
         );
-    }
+    },
+    /* 图片、视频上传 */
+    upload(url, filePath, name, formData, vsize = 8, issize = 100) {
+        let us = uni.getStorageSync('userInfo') || {},
+            userData = {}
+        if (us) {
+            userData.user_id = us.id
+            userData.sign = us.sign
+        }
+        formData = Object.assign(formData, userData)
+        return new Promise((resolve, reject) => {
+            const uploadTask = uni.uploadFile({
+                url: api.config.url + url,
+                filePath: filePath,
+                name: name,
+                formData: formData,
+                header: {
+                    "request-header": "fotile-api",
+                    "yuyuan-api": "yuyuan-api"
+                },
+                complete: function (res) {
+                    let statusCode = res.statusCode
+                    if (statusCode == 200) {
+                        let r = JSON.parse(res.data),
+                            code = r.uploaded
+                        if (code == 1) {
+                            resolve(r)
+                        } else {
+                            reject()
+                        }
+                    } else {
+                        console.log({
+                            code: res.statusCode,
+                            msg: res.errMsg
+                        })
+                        reject({
+                            code: res.statusCode,
+                            msg: res.errMsg
+                        })
+                    }
+                }
+            })
+            uploadTask.onProgressUpdate((res) => {
+                // console.log('上传进度', res.progress)
+                // console.log('已经上传的数据长度', res.totalBytesSent)
+                // console.log('预期需要上传的数据总长度', res.totalBytesExpectedToSend)
+                if (name == 'files') {
+                    let videoLength = (res.totalBytesSent) / 1024 / 1024
+                    console.log(videoLength)
+                    if (videoLength > vsize) {
+                        uploadTask.abort()
+                        utils.showToast(`视频大小超过${vsize}0MB，请重新上传`, false)
+                    }
+                } else if (name == 'upload') {
+                    let imgLength = (res.totalBytesSent) / 1024 / 8
+                    console.log(imgLength)
+                    if (imgLength > issize) {
+                        uploadTask.abort()
+                        utils.showToast(`图片超过${issize}kb,请重新上传`, false)
+                    }
+                }
+            })
+        })
+    },
+    /* 检查是否登录 */
+    checkLogin() {
+        let flag = true, us = uni.getStorageSync('userInfo')
+        if (!us) {
+          flag = false
+          utils.showToast('您还未登录')
+          setTimeout(() => {
+            utils.changePage('/pages/common/login')
+          }, 600);
+        }
+        return flag
+      },
 }
 
 export default utils
