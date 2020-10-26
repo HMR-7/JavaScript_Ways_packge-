@@ -1,58 +1,42 @@
 const utils = {
-    //判断是否为全面屏手机，实现兼容性匹配
-    getPhoneModel() {
-        var bottom_phone_line = null;
-        let model = uni.getStorageSync('phoneData').model
-        if (model.indexOf('iPhone X') != -1 || model.indexOf('iPhone 11') != -1) {
-            bottom_phone_line = true;
-        } else {
-            bottom_phone_line = false
-        }
-        return bottom_phone_line
-    },
-    /* 一键复制 */
-    setClipboardData(str) {
-        uni.setClipboardData({
-            data: str,
-            success: () => {
-                uni.showToast({
-                    title: "复制成功",
-                    icon: "success",
-                    duration: 1000
-                });
+    /*1、pc端获取url请求参数 */
+    getQueryStringArgs: (http) => {
+        let qs = (http.length > 0 ? http.substring(1) : ''),
+            args = {},
+            items = qs.length ? qs.split("&") : [],
+            item = null,
+            name = null,
+            value = null,
+            i = 0,
+            len = items.length;
+        for (i = 0; i < len; i++) {
+            item = items[i].split("=");
+            name = decodeURIComponent(item[0]);
+            value = decodeURIComponent(item[1]);
+            if (name.length) {
+                args[name] = value
             }
-        });
-    },
-    /* 动态设置页面标题 */
-    setAppTitile: (str) => {
-        uni.setNavigationBarTitle({
-            title: str
-        });
-    },
-    /* 触底加载的封装 */
-    reachBottom(list, page, res) {
-        console.log(this, 'this');
-        list = [...list, ...res]
-        if (list.length == 0 && page == 1) {
-            console.log("没有数据");
         }
-        if (res.length == 0 && page > 1) {
-            console.log(111);
-            uni.showToast({
-                title: "没有更多了",
-                icon: "none",
-                duration: 2000,
-            });
-            page--
-        } else {
-            // page++
-        }
-        return {
-            list: list,
-            page: page
-        }
+        // console.log(args["id"]);
+        return args;
     },
-    /* 更换对象键名 */
+    //获取url路径的传递参数
+    /* 示例:获取url栏中的id参数值
+        var id = getQueryVariable('id')
+    */
+    /* 1、简易版 */
+    getQueryVariable: (variable) => {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split("=");
+            if (pair[0] == variable) {
+                return pair[1];
+            }
+        }
+        return (false);
+    },
+    /* 2、更换对象键名 */
     changeObjKeys: (objArr, newKeys) => {
         for (let i = 0; i < objArr.length; i++) {
             let objItem = objArr[i];
@@ -66,7 +50,7 @@ const utils = {
         }
         return objArr;
     },
-    /* 若对象为null、undefined、''时，转化为空对象或指定某值 */
+    /* 3、若对象为null、undefined、''时，转化为空对象或指定某值 */
     replaceNull: function (obj) {
         if (typeof obj === 'object') {
             Object.keys(obj).forEach(element => {
@@ -81,6 +65,7 @@ const utils = {
         }
         return obj;
     },
+    /* 4、洗牌算法 */
     shuffle: (arr) => {
         let len = arr.length;
         for (let i = 0; i < len; i++) {
@@ -92,65 +77,7 @@ const utils = {
         }
         return arr;
     },
-    /* ajax请求-promise+async、await */
-    ajax: async function (url, method, data, res) {
-        const promise = new Promise((resolve, reject) => {
-            if (true) {
-                // let userInfo = uni.getStorageSync('storaguserInfoe_key');
-                if (!data) data = {};
-                if (data) {
-                    data.user_id = userInfo.id
-                    data.sign = userInfo.sign
-                    data.openid = userInfo.openid
-                }
-                console.log(url + '-->' + '请求数据data--->', data)
-                uni.request({
-                    url: api.config.url + url, //仅为示例，并非真实接口地址。
-                    method: method,
-                    data: data,
-                    header: {
-                        "HMR": "HMR",
-                        "content-type": "application/x-www-form-urlencoded",
-                        "request-header": "HMR"
-                    },
-                    success: (res) => {
-                        let result = res.data,
-                            code = result.code,
-                            msg = result.msg;
-                        console.log(url + '-->' + '请求接口返回值--->', res)
-                        console.log(url + '-->' + "接口code码返回值--->", code);
-                        if (code == 40001 || code == 0) {
-                            utils.showToast(msg, false)
-                            return
-                        }
-                        result = utils.replaceNull(result)
-                        return resolve(result)
-                    },
-                });
-            } else {
-                return reject('Promise异步执行失败')
-            }
-        })
-        res(await promise)
-    },
-    /* 富文本解析 */
-    formatRichText: function (html) {
-        let newContent = html.replace(/<img[^>]*>/gi, function (match, capture) {
-            match = match.replace(/style=""/gi, '').replace(/style=''+'/gi, '');
-            match = match.replace(/style="[^"]+"/gi, '').replace(/style='[^']+'/gi, '');
-            match = match.replace(/width="[^"]+"/gi, '').replace(/width='[^']+'/gi, '');
-            match = match.replace(/height="[^"]+"/gi, '').replace(/height='[^']+'/gi, '');
-            return match;
-        });
-        newContent = newContent.replace(/style="[^"]+"/gi, function (match, capture) {
-            match = match.replace(/width:[^;]+;/gi, 'max-width:100%;').replace(/width:[^;]+;/gi, 'max-width:100%;');
-            return match;
-        });
-        newContent = newContent.replace(/<br[^>]*\/>/gi, '');
-        newContent = newContent.replace(/\<img/gi, `<img style="max-width:100%!important;height:auto!important;display:block!important;margin-top:0!important;margin-bottom:0!important;"`);
-        return newContent;
-    },
-    /* 遍历查询数据中是否含有某指定值 */
+    /* 5、遍历查询数据中是否含有某指定值 */
     mapIndex(arr, key) {
         const idxMap = new Map()
         arr.forEach((v, i) => {
@@ -158,21 +85,11 @@ const utils = {
         })
         return idxMap.has(key) ? idxMap.get(key) : -1
     },
-    /* 接口对接时，不加载loading */
-    apiCannotLoading: (url) => {
-        var flag = false,
-            urls = ['phoneCode', 'powerNum'] //此处为不添加Loading的接口名
-        let f = utils.mapIndex(urls, url)
-        if (f >= 0) {
-            flag = true
-        }
-        return flag
-    },
-    /* 随机颜色范围 */
+    /* 6、随机颜色范围 */
     randomNumber(m, n) {
         return Math.floor(Math.random() * (n - m + 1) + m);
     },
-    /* 生成随机颜色 */
+    /* 7、生成随机颜色 */
     randomColor() {
         return (
             "rgb(" +
@@ -184,81 +101,102 @@ const utils = {
             ")"
         );
     },
-    /* 图片、视频上传 */
-    upload(url, filePath, name, formData, vsize = 8, issize = 100) {
-        let us = uni.getStorageSync('userInfo') || {},
-            userData = {}
-        if (us) {
-            userData.user_id = us.id
-            userData.sign = us.sign
+    //8、获取时间，type时间粒度默认为：seconds
+    getDate(type = 'seconds') {
+        let d = new Date();
+        let year = d.getFullYear(),
+            month = d.getMonth() + 1,
+            day = d.getDate(),
+            hours = d.getHours(),
+            minutes = d.getMinutes(),
+            seconds = d.getSeconds();
+        JSON.stringify(month).length == 1 ? month = `${'0' + month}` : month = month
+        JSON.stringify(hours).length == 1 ? hours = `${'0' + hours}` : hours = hours
+        JSON.stringify(minutes).length == 1 ? minutes = `${'0' + minutes}` : minutes = minutes
+        JSON.stringify(seconds).length == 1 ? seconds = `${'0' + seconds}` : seconds = seconds
+        switch (type) {
+            case "year":
+                return `${year}`;
+            case "month":
+                return `${year}-${month}`
+            case "day":
+                let end = utils.getAfterNYear(`${year}-${month}-${day}`, 10)
+                return {
+                    normal: `${year}年${month}月${day}日`, special: `${year}-${month}-${day}`, end: end
+                };
+            case "hours":
+                return `${year}-${month}-${day}-${hours}`
+            case "minutes":
+                return `${year}-${month}-${day}-${hours}:${minutes}`
+            default:
+                return `${year}-${month}-${day}-${hours}:${minutes}:${seconds}`;
         }
-        formData = Object.assign(formData, userData)
-        return new Promise((resolve, reject) => {
-            const uploadTask = uni.uploadFile({
-                url: api.config.url + url,
-                filePath: filePath,
-                name: name,
-                formData: formData,
-                header: {
-                    "request-header": "fotile-api",
-                    "yuyuan-api": "yuyuan-api"
-                },
-                complete: function (res) {
-                    let statusCode = res.statusCode
-                    if (statusCode == 200) {
-                        let r = JSON.parse(res.data),
-                            code = r.uploaded
-                        if (code == 1) {
-                            resolve(r)
-                        } else {
-                            reject()
-                        }
-                    } else {
-                        console.log({
-                            code: res.statusCode,
-                            msg: res.errMsg
-                        })
-                        reject({
-                            code: res.statusCode,
-                            msg: res.errMsg
-                        })
-                    }
-                }
-            })
-            uploadTask.onProgressUpdate((res) => {
-                // console.log('上传进度', res.progress)
-                // console.log('已经上传的数据长度', res.totalBytesSent)
-                // console.log('预期需要上传的数据总长度', res.totalBytesExpectedToSend)
-                if (name == 'files') {
-                    let videoLength = (res.totalBytesSent) / 1024 / 1024
-                    console.log(videoLength)
-                    if (videoLength > vsize) {
-                        uploadTask.abort()
-                        utils.showToast(`视频大小超过${vsize}0MB，请重新上传`, false)
-                    }
-                } else if (name == 'upload') {
-                    let imgLength = (res.totalBytesSent) / 1024 / 8
-                    console.log(imgLength)
-                    if (imgLength > issize) {
-                        uploadTask.abort()
-                        utils.showToast(`图片超过${issize}kb,请重新上传`, false)
-                    }
-                }
-            })
-        })
     },
-    /* 检查是否登录 */
-    checkLogin() {
-        let flag = true, us = uni.getStorageSync('userInfo')
-        if (!us) {
-          flag = false
-          utils.showToast('您还未登录')
-          setTimeout(() => {
-            utils.changePage('/pages/common/login')
-          }, 600);
+    /**9、
+     * 计算N年后,YYYYMMDD
+     * startdate：为开始时间，格式YYYYMMDD
+     * nextYear：为间隔年月，如1表示一年后，2表示两年后
+     */
+    getAfterNYear(startdate, nextYear) {
+        let expriedYear = parseInt(startdate.substring(0, 4)) + nextYear;
+        let expriedMonth = startdate.substring(5, 7);
+        let expriedDay = startdate.substring(8);
+        //考虑二月份场景，若N年后的二月份日期大于该年的二月份的最后一天，则取该年二月份最后一天
+        if (expriedMonth == '02' || expriedMonth == 2) {
+            let monthEndDate = new Date(expriedYear, expriedMonth, 0).getDate();
+            if (parseInt(expriedDay) > monthEndDate) { //为月底时间
+                //取两年后的二月份最后一天
+                expriedDay = monthEndDate;
+            }
         }
-        return flag
-      },
-}
+        return expriedYear + '-' + expriedMonth + '-' + expriedDay;
+    },
+    /* 10、去除字符串中端所有空格 */
+    trim(str) {
+        return str.replace(/\s/g, "");
+    },
+    /* 11、数字从右往左每第3位数，添加逗号 */
+    formatMoney = (num) => {
+        if (typeof num == 'number') {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        } else {
+            num = num.replace(/\s/g, ""); //去除空格
+            num = num.replace(/^[0]+/, '') //去除首位为0的数字
+            num = num.replace(/[`.`]/, '0.') //检测点符号,防止小数点前一位0被去除
+            return num.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+        }
+    },
+    /* 12、存储 setSessionItem ,name为存储的自定义昵称，content为要存储的数据 */
+    setSessionItem = (name, content) => {
+        if (!name) return;
+        if (typeof content !== 'string') {
+            content = JSON.stringify(content);
+        }
+        window.sessionStorage.setItem(name, content);
+    },
 
-export default utils
+    /* 13、读取浏览器的setSessionItem  */
+    getSessionItem = name => {
+        if (!name) return;
+        return window.sessionStorage.getItem(name);
+    },
+
+    /* 14、删除浏览器的setSessionItem  */
+    removeSessionItem = name => {
+        if (!name) return;
+        window.sessionStorage.removeItem(name);
+    },
+    /* 15、防抖->可实现模糊搜索，即输入框延迟搜索 */
+    blurrSearch = (fn, waitTime) => {
+        let timeOutId = 0;
+        waitTime = waitTime || 500;
+        return function () {
+            clearTimeout(timeOutId);
+            let t = this;
+            let args = arguments;
+            timeOutId = setTimeout(function () {
+                fn.call(t, args[0])
+            }, waitTime)
+        }
+    }
+}
