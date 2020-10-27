@@ -198,5 +198,12 @@ const utils = {
                 fn.call(t, args[0])
             }, waitTime)
         }
+    },
+    /* 16、动态添加脚本 */
+    loadScript(url) {
+        var script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = url;
+        document.body.appendChild(script);
     }
 }
