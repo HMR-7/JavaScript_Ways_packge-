@@ -199,7 +199,7 @@ const utils = {
             }, waitTime)
         }
     },
-    /* 16、动态添加脚本、兼容IE浏览器 */
+    /* 16、动态添加脚本 */
     loadScript(url) {
         var script = document.createElement("script");
         script.type = "text/javascript";
