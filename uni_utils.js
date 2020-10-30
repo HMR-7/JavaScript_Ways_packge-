@@ -260,7 +260,7 @@ const utils = {
             }, 600);
         }
         return flag
-    },
+    }, 
 }
 
 export default utils
