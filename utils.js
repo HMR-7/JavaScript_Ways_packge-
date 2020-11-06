@@ -174,13 +174,11 @@ const utils = {
         }
         window.sessionStorage.setItem(name, content);
     },
-
     /* 13、读取浏览器的setSessionItem  */
     getSessionItem = name => {
         if (!name) return;
         return window.sessionStorage.getItem(name);
     },
-
     /* 14、删除浏览器的setSessionItem  */
     removeSessionItem = name => {
         if (!name) return;
@@ -199,11 +197,39 @@ const utils = {
             }, waitTime)
         }
     },
-    /* 16、动态添加脚本 */
+    /* 16、节流函数 */
+    throttle(fn, interval) {
+        let enterTime = 0;
+        let gapTime = interval || 3000;
+        return function () {
+            let that = this;
+            let args = arguments;
+            let backTime = new Date();
+            if (backTime - enterTime > gapTime) {
+                fn.call(that, args);
+                enterTime = backTime
+            }
+        }
+    },
+    /* 17、动态添加脚本 */
     loadScript(url) {
         var script = document.createElement("script");
         script.type = "text/javascript";
         script.src = url;
         document.body.appendChild(script);
+    },
+    /* 18、获取url后方全部的请求参数 */
+    GetRequest() {
+        let url = window.location.search; //获取url中"?"符后的字串  
+        let theRequest = {};
+        if (url.indexOf("?") != -1) {
+            let str = url.substr(1);
+            strs = str.split("&");
+            for (var i = 0; i < strs.length; i++) {
+                theRequest[strs[i].split("=")[0]] = decodeURI(strs[i].split("=")[1]); //对字符串解码
+            }
+        }
+        console.log("所有参数名称", theRequest);
+        return theRequest;
     }
 }
